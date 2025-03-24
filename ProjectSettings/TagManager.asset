@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 3
   tags:
   - Ground
+  - Gemas
+  - Pocion
+  - Cartas
   layers:
   - Default
   - TransparentFX
@@ -12,7 +15,7 @@ TagManager:
   - suelo
   - Water
   - UI
-  - 
+  - Enemies
   - 
   - 
   - 
