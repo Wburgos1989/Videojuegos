@@ -3,6 +3,7 @@ using UnityEngine;
 public class salto : MonoBehaviour
 {
     public float velocidad = 5f;
+    public int vida = 5;
 
     public float fuerzaSalto = 10f;
     public float fuerzaRebote = 10f;
@@ -11,6 +12,8 @@ public class salto : MonoBehaviour
 
     private bool enSuelo;
     private bool recibiendoDanio;
+    private bool atacando;
+    public bool muerto;
     private Rigidbody2D rb;
 
     public Animator animator;
@@ -24,9 +27,37 @@ public class salto : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!muerto) {
+            if (!atacando)
+            {
+                Movimiento();
+
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, longitudRaycast, capaSuelo);
+                enSuelo = hit.collider != null;
+
+                if (enSuelo && Input.GetKeyDown(KeyCode.Space) && !recibiendoDanio)
+                {
+                    rb.AddForce(new Vector2(0f, fuerzaSalto), ForceMode2D.Impulse);
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.Z) && !atacando && enSuelo)
+            {
+                Atacando();
+            }
+
+            animator.SetBool("ensuelo", enSuelo);
+            animator.SetBool("recibeDanio", recibiendoDanio);
+            animator.SetBool("atacando", atacando);
+            
+        }
+    }
+
+    public void Movimiento()
+    {
         float velocidadX = Input.GetAxis("Horizontal") * Time.deltaTime * velocidad;
 
-        animator.SetFloat("movement",velocidadX * velocidad);
+        animator.SetFloat("movement", velocidadX * velocidad);
 
         if (velocidadX < 0)
         {
@@ -41,19 +72,8 @@ public class salto : MonoBehaviour
 
         Vector3 posicion = transform.position;
 
-        if (!recibiendoDanio) 
-        transform.position = new Vector3(velocidadX + posicion.x, posicion.y, posicion.z);
-
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, longitudRaycast, capaSuelo);
-        enSuelo = hit.collider != null;
-
-        if (enSuelo && Input.GetKeyDown(KeyCode.Space) && !recibiendoDanio)
-        {
-            rb.AddForce(new Vector2(0f, fuerzaSalto), ForceMode2D.Impulse);
-        }
-
-        animator.SetBool("ensuelo", enSuelo);
-        animator.SetBool("recibeDanio", recibiendoDanio);
+        if (!recibiendoDanio)
+            transform.position = new Vector3(velocidadX + posicion.x, posicion.y, posicion.z);
     }
 
     public void recibeDanio(Vector2 direccion, int cantDanio)
@@ -61,8 +81,18 @@ public class salto : MonoBehaviour
         if (!recibiendoDanio)
         {
             recibiendoDanio = true;
-            Vector2 rebote = new Vector2(transform.position.x - direccion.x, 1).normalized;
-            rb.AddForce(rebote * fuerzaRebote, ForceMode2D.Impulse);
+            vida -= cantDanio;
+            if (vida <= 0)
+            {
+                muerto = true;
+                animator.SetBool("muerto", muerto);
+            }
+            else
+            {
+                Vector2 rebote = new Vector2(transform.position.x - direccion.x, 1).normalized;
+                rb.AddForce(rebote * fuerzaRebote, ForceMode2D.Impulse);
+            }
+            
         }
         
     }
@@ -73,6 +103,17 @@ public class salto : MonoBehaviour
         Vector2 nuevaPosicion = rb.position + Vector2.zero;
         rb.MovePosition(nuevaPosicion);
     }
+
+    public void Atacando()
+    {
+        atacando = true;
+    }
+
+    public void DesactivaAtaque()
+    {
+        atacando = false;
+    }
+
     void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
