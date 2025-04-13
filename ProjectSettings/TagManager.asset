@@ -8,6 +8,7 @@ TagManager:
   - Gemas
   - Pocion
   - Cartas
+  - Ataque
   layers:
   - Default
   - TransparentFX
